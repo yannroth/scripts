@@ -10,7 +10,7 @@ fi
 vid=$1
 out=$2
 
-crop=$(ffmpeg -ss 90 -i $vid -vframes 20 -vf cropdetect -f null - 2>&1 | awk '/crop/ { print $NF }' | tail -1 | sed -e 's/crop=//g')
+crop=$(ffmpeg -ss 90 -i '$vid' -vframes 20 -vf cropdetect -f null - 2>&1 | awk '/crop/ { print $NF }' | tail -1 | sed -e 's/crop=//g')
 echo "crop = $crop"
-ffmpeg -i $vid -vf crop=$crop -c:a copy $out
+ffmpeg -i "$vid" -vf crop=$crop -c:a copy "$out"
 exit 0
