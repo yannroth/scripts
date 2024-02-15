@@ -35,3 +35,15 @@ It also uses Pillow for image conversion, install with
 ```
 pip install pillow
 ```
+
+You'll also needs the models that are available in [upscayl repo](https://github.com/upscayl/upscayl) under `resources/models`
+
+And also in the [custom-models repo](https://github.com/upscayl/custom-models) under `models`.
+
+Only a chosen subset of models is available in the script, and you'll need to adapt the global variables 
+```
+__upscayl__ = 'upscayl-bin'
+__model_path__ = '/home/yann/git/upscayl/resources/models/'
+__custom_model_path__ = '/home/yann/git/custom-models/models/'
+```
+Depending of your setup.
