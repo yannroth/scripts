@@ -111,7 +111,7 @@ def parse_args():
                         help='Output file name, can be omited')
     parser.add_argument('-s', '--scale', default=4,
                         help='Scale for upscaling')
-    parser.add_argument('-m', '--model', default='ultrasharp',
+    parser.add_argument('-m', '--model', default='ultramix_balanced',
                         help='Model to use for upscaling ' + str([model for model in models]))
     parser.add_argument('-a', '--all', action='store_true',
                         help='Perform upscalling with every model for comparison, this will take a while')
