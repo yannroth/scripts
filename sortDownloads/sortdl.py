@@ -58,13 +58,13 @@ def find_tvshow_info(title):
 
 def rename_and_move_movie(file_path, movie_title, movie_year, dest_folder, dry_run=False, ask_conf=False):
     file_name, file_ext = os.path.splitext(file_path)
-    new_folder_name = f"{movie_title} ({movie_year})"
+    new_folder_name = sanitize(f"{movie_title} ({movie_year})")
     new_folder_path = os.path.join(dest_folder, new_folder_name)
     new_file_name = f"{new_folder_name}{file_ext}"
     move_file(file_path, os.path.join(new_folder_path, new_file_name), dry_run, ask_conf)
 
 def move_movie_subtitle(file_path, movie_title, movie_year, dest_folder, dry_run=False, ask_conf=False):
-    new_folder_name = f"{movie_title} ({movie_year})"
+    new_folder_name = sanitize(f"{movie_title} ({movie_year})")
     new_folder_path = os.path.join(dest_folder, new_folder_name)
     filename = os.path.basename(file_path)
     move_file(file_path, os.path.join(new_folder_path, filename), dry_run, ask_conf)
