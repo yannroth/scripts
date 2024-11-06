@@ -44,9 +44,18 @@ def move_file(src, dest, dry_run=False, ask_conf=False):
             shutil.move(src, dest)
             logger.info(f"\n{src} ->\n{dest}")
 
-def find_movie_info(title):
+def find_movie_info(title, year=None):
+    logger.debug(f"searching for {title}")
     search_result = movie_api.search(title)
+    for res in search_result.results:
+        date = res['release_date'] if 'release_date' in res else ''
+        logger.debug(f"found: {date} - {res['title']}")
     if search_result.results:
+        if year is not None:
+            for res in search_result.results:
+                if res['release_date'].split('-')[0] == str(year):
+                    return res
+
         return search_result.results[0]
     return None
 
@@ -159,6 +168,10 @@ def sort_files(src_folder, movie_dest, tv_dest, dry_run=False, ask_conf=False):
                 try:
                     parsed = parser(filename)
                     parsed_title = parsed['title']
+                    if 'year' in parsed:
+                        parsed_year = parsed['year']
+                    else:
+                        parsed_year = None
                     
                 except:
                     logger.error(f"Couldn't parse : {filename}")
@@ -181,7 +194,7 @@ def sort_files(src_folder, movie_dest, tv_dest, dry_run=False, ask_conf=False):
                     
                 else:
                     # Handle movies
-                    res = find_movie_info(parsed_title)
+                    res = find_movie_info(parsed_title, year=parsed_year)
                     if not res:
                         logger.warning(f"\nNo result found for '{filename}', skipping\n")
                         continue
