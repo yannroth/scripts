@@ -9,6 +9,7 @@ from mutagen.easyid3 import EasyID3
 from mutagen.mp3 import MP3
 from guessit import guessit as parser
 from sanitize_filename import sanitize
+import logging
 import argparse
 
 version = '1.0.0'
@@ -30,7 +31,7 @@ subtitle_file_extensions = ['srt', 'sub', 'stl']
 # Helper functions
 def move_file(src, dest, dry_run=False, ask_conf=False):
     if dry_run:
-        print(f"\nDRY RUN\n{src} -->\n{dest}")
+        logger.info(f"\nDRY RUN\n{src} -->\n{dest}")
     else:
         execute = True
         if ask_conf:
@@ -41,7 +42,7 @@ def move_file(src, dest, dry_run=False, ask_conf=False):
             if not os.path.exists(os.path.dirname(dest)):
                 os.makedirs(os.path.dirname(dest))
             shutil.move(src, dest)
-            print(f"\n{src} ->\n{dest}")
+            logger.info(f"\n{src} ->\n{dest}")
 
 def find_movie_info(title):
     search_result = movie_api.search(title)
@@ -99,7 +100,7 @@ def get_subtitles_movie(movie_path, src_folder, movie_title, movie_year, dest_fo
 def delete_files(files_to_delete, dry_run=False, ask_conf=False):
     for file in files_to_delete:
         if dry_run:
-            print(f"\nDRY RUN\n{file} -->\nThrash")
+            logger.info(f"\nDRY RUN\n{file} -->\nThrash")
         else:
             execute = True
             if ask_conf:
@@ -109,13 +110,13 @@ def delete_files(files_to_delete, dry_run=False, ask_conf=False):
             if execute:
                 try:
                     os.remove(file)
-                    print(f"\n{file} -->\nThrash")
+                    logger.info(f"\n{file} -->\nThrash")
                 except FileNotFoundError:
-                    print(f"File not found: {file}")
+                    logger.error(f"File not found: {file}")
                 except PermissionError:
-                    print(f"Permission denied: {file}")
+                    logger.error(f"Permission denied: {file}")
                 except Exception as e:
-                    print(f"Error deleting file {file}: {e}")
+                    logger.error(f"Error deleting file {file}: {e}")
 
 def _remove_empty_folders(folder, dry_run=False, ask_conf=False):
     # Walk the directory tree from the bottom up (deepest subdirectories first)
@@ -123,7 +124,7 @@ def _remove_empty_folders(folder, dry_run=False, ask_conf=False):
         # If the directory is empty (no files or subdirectories), remove it
         if not dirnames and not filenames and not dirpath == folder:
             if dry_run:
-                print(f"\n{dirpath} -->\nThrash")
+                logger.info(f"\n{dirpath} -->\nThrash")
             else:
                 execute = True
                 if ask_conf:
@@ -133,9 +134,9 @@ def _remove_empty_folders(folder, dry_run=False, ask_conf=False):
                 if execute:
                     try:
                         os.rmdir(dirpath)
-                        print(f"\n{dirpath} -->\nThrash")
+                        logger.info(f"\n{dirpath} -->\nThrash")
                     except OSError as e:
-                        print(f"Error removing folder {dirpath}: {e}")
+                        logger.error(f"Error removing folder {dirpath}: {e}")
 
 def remove_empty_folders(folder, dry_run=False, ask_conf=False):
     # Execute twice as some empty folder could remain otherwise
@@ -160,7 +161,7 @@ def sort_files(src_folder, movie_dest, tv_dest, dry_run=False, ask_conf=False):
                     parsed_title = parsed['title']
                     
                 except:
-                    print(f"Couldn't parse : {filename}")
+                    logger.error(f"Couldn't parse : {filename}")
                     continue
 
                 
@@ -168,7 +169,7 @@ def sort_files(src_folder, movie_dest, tv_dest, dry_run=False, ask_conf=False):
                     # Handle TV show episode
                     res = find_tvshow_info(parsed_title)
                     if not res:
-                        print(f"\nNo result found for '{filename}', skipping\n")
+                        logger.warning(f"\nNo result found for '{filename}', skipping\n")
                         continue
                     show_id = res['id']
                     show_title = res['original_name']
@@ -182,7 +183,7 @@ def sort_files(src_folder, movie_dest, tv_dest, dry_run=False, ask_conf=False):
                     # Handle movies
                     res = find_movie_info(parsed_title)
                     if not res:
-                        print(f"\nNo result found for '{filename}', skipping\n")
+                        logger.warning(f"\nNo result found for '{filename}', skipping\n")
                         continue
                     movie_title = res['title']
                     movie_year = res['release_date'].split('-')[0]
@@ -202,7 +203,25 @@ if __name__ == '__main__':
     argparser.add_argument('-c', '--confirmation', action='store_true', default=False, help='Request confirmation from user for each file move or delete')
     argparser.add_argument('-d', '--dryrun', action='store_true', default=False, help='Dry run, only display what would have been moved and deleted')
     argparser.add_argument('-v', '--version', action='version', version=version)
+    argparser.add_argument('--debug', action='store_true', help='Enable debug mode')
     args = argparser.parse_args()
+
+    logger = logging.getLogger('sortdl')
+
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
+
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.DEBUG)
+
+    # Create a formatter and set it for the handler
+    formatter = logging.Formatter('%(name)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(formatter)
+
+    # Add the handler to the logger
+    logger.addHandler(console_handler)
 
     source_folder = os.path.abspath(args.src)
     movies_folder = os.path.abspath(args.movies_dest)
