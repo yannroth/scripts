@@ -12,7 +12,7 @@ from sanitize_filename import sanitize
 import logging
 import argparse
 
-version = '1.0.0'
+version = '1.1.0'
 
 # Set up TMDb API
 config = configparser.ConfigParser()
